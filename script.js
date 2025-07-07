@@ -49,13 +49,16 @@ async function loadData(){
     });
     if(result){
       data = result;
+      updateStorageInfo();
       return;
+      
     }
   }catch(e){ }  const saved = localStorage.getItem(STORAGE_KEY);
   if(saved){
     try{ data = JSON.parse(saved); }catch(e){ data = { tsums: [] }; }
   }
   await saveData();
+  updateStorageInfo();
 }
 
 function saveData(){
@@ -73,6 +76,7 @@ function escapeHtml(str){
 }
 
 function playNetCoins(p, rate){
+
 async function updateStorageInfo(){
   const el = $('storageInfo');
   if(!el) return;
@@ -83,22 +87,39 @@ async function updateStorageInfo(){
     usage = est.usage || 0;
   }catch(e){}
   let ls = 0;
+  
+  let lsUsed = 0;
   try{
     for(let i=0;i<localStorage.length;i++){
       const k = localStorage.key(i);
       const v = localStorage.getItem(k);
-      ls += (k.length + (v? v.length:0)) * 2;
+      lsUsed += (k.length + (v? v.length:0)) * 2;
     }
   }catch(e){}
-  const idb = new Blob([JSON.stringify(data)]).size;
-  const used = ls + idb;
-  let text = `使用量 ${(used/1024/1024).toFixed(2)}MB`;
+
+  let idbUsed = 0;
+  try{
+    idbUsed = new Blob([JSON.stringify(data)]).size;
+  }catch(e){}
+
+  const totalFree = quota ? quota - usage : 0;
+  const lsFree = quota ? quota - (usage - lsUsed) : 0;
+  const idbFree = quota ? quota - (usage - idbUsed) : 0;
+  const toMB = b => (b/1024/1024).toFixed(2);
+
+  const lines = [
+    `localStorage: ${toMB(lsFree)}MB free / ${toMB(lsUsed)}MB used / ${toMB(lsFree + lsUsed)}MB total`,
+    `IndexedDB: ${toMB(idbFree)}MB free / ${toMB(idbUsed)}MB used / ${toMB(idbFree + idbUsed)}MB total`
+  ];
   if(quota){
-    text += ` / ${(quota/1024/1024).toFixed(2)}MB (${(usage/quota*100).toFixed(1)}%)`;
+    lines.push(`Overall: ${toMB(totalFree)}MB free / ${toMB(usage)}MB used / ${toMB(quota)}MB total`);
   }
-  el.textContent = text;
+
+  el.innerHTML = lines.join('<br>');
 }
 
+function playNetCoins(p, rate){
+    
   let cost = 0;
   if(p.items && p.items.time) cost += ITEM_COST_TIME;
   if(p.items && p.items.item54) cost += ITEM_COST_54;
