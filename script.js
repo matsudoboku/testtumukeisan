@@ -15,6 +15,12 @@ const ITEM_COST_TIME = 1000;
 const ITEM_COST_54 = 1800;
 const ITEM_COST_COIN = 500;
 
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
+const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY';
+const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
+let gapiInited = false;
+let tokenClient = null;
+
 function $(id){ return document.getElementById(id); }
 
 function openDb(){
@@ -64,6 +70,7 @@ function saveData(){
   getDb().then(db => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     tx.objectStore(STORE_NAME).put(data, STORAGE_KEY);
+  updateStorageInfo();
   });
 }
 
@@ -72,6 +79,32 @@ function escapeHtml(str){
 }
 
 function playNetCoins(p, rate){
+async function updateStorageInfo(){
+  const el = $('storageInfo');
+  if(!el) return;
+  let quota = 0, usage = 0;
+  try{
+    const est = await navigator.storage.estimate();
+    quota = est.quota || 0;
+    usage = est.usage || 0;
+  }catch(e){}
+  let ls = 0;
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      const v = localStorage.getItem(k);
+      ls += (k.length + (v? v.length:0)) * 2;
+    }
+  }catch(e){}
+  const idb = new Blob([JSON.stringify(data)]).size;
+  const used = ls + idb;
+  let text = `使用量 ${(used/1024/1024).toFixed(2)}MB`;
+  if(quota){
+    text += ` / ${(quota/1024/1024).toFixed(2)}MB (${(usage/quota*100).toFixed(1)}%)`;
+  }
+  el.textContent = text;
+}
+
   let cost = 0;
   if(p.items && p.items.time) cost += ITEM_COST_TIME;
   if(p.items && p.items.item54) cost += ITEM_COST_54;
@@ -443,12 +476,96 @@ function importBackup(event){
         data = obj;
         saveData();
         renderAll();
+        updateStorageInfo();
       }
     }catch(err){
       alert('読み込みに失敗しました');
     }
   };
   reader.readAsText(file);
+}
+
+// ---------- Google Drive ----------
+function gapiLoaded(){ gapi.load('client', initializeGapiClient); }
+
+async function initializeGapiClient(){
+  await gapi.client.init({
+    apiKey: GOOGLE_API_KEY,
+    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+  });
+  gapiInited = true;
+}
+
+function gisLoaded(){
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_SCOPES,
+    callback: ''
+  });
+}
+
+async function ensureAuth(){
+  if(!gapiInited) return false;
+  if(!gapi.client.getToken()){
+    return new Promise(resolve=>{
+      tokenClient.callback = res=>{
+        resolve(!res.error);
+      };
+      tokenClient.requestAccessToken({prompt:'consent'});
+    });
+  }
+  return true;
+}
+
+async function saveToDrive(){
+  if(!await ensureAuth()){ alert('Googleログインに失敗しました'); return; }
+  const name = $('driveFileName').value.trim() || 'tumukeisan-backup.json';
+  const metadata = { name, mimeType:'application/json' };
+  const body = JSON.stringify(data);
+  const boundary = '-------314159265358979323846';
+  const delimiter = `\r\n--${boundary}\r\n`;
+  const closeDelim = `\r\n--${boundary}--`;
+  const multipart =
+    delimiter + 'Content-Type: application/json\r\n\r\n' +
+    JSON.stringify(metadata) +
+    delimiter + 'Content-Type: application/json\r\n\r\n' +
+    body + closeDelim;
+  await gapi.client.request({
+    path: '/upload/drive/v3/files',
+    method: 'POST',
+    params: {uploadType:'multipart'},
+    headers: {'Content-Type': 'multipart/related; boundary=' + boundary},
+    body: multipart
+  });
+  alert('Googleドライブに保存しました');
+}
+
+async function loadFromDrive(){
+  if(!await ensureAuth()){ alert('Googleログインに失敗しました'); return; }
+  const name = $('driveFileName').value.trim() || 'tumukeisan-backup.json';
+  const list = await gapi.client.drive.files.list({
+    q: `name='${name}' and trashed=false`,
+    spaces:'drive',
+    fields:'files(id,name)',
+    pageSize:1
+  });
+  if(!list.result.files || !list.result.files.length){
+    alert('ファイルが見つかりません');
+    return;
+  }
+  const fileId = list.result.files[0].id;
+  const res = await gapi.client.drive.files.get({fileId, alt:'media'});
+  try{
+    const obj = JSON.parse(res.body);
+    if(obj && Array.isArray(obj.tsums)){
+      data = obj;
+      saveData();
+      renderAll();
+      alert('復元しました');
+    }
+  }catch(e){
+    alert('読み込みに失敗しました');
+  }
 }
 
 function showTestNotice(){
@@ -474,6 +591,7 @@ async function init(){
   switchInputMode('stopwatch');
   if(data.tsums.length>0) onSelectTsum();
   showTestNotice();
+  updateStorageInfo();
 }
 
 window.addEventListener('DOMContentLoaded', init);
