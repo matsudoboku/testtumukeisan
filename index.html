@@ -133,11 +133,6 @@
         <div class="row" id="storageInfoRow" style="justify-content:center;">
           <span id="storageInfo"></span>
         </div>
-        <div class="row" style="justify-content:center; flex-wrap:wrap;">
-          <input type="text" id="driveFileName" placeholder="ファイル名" style="margin-right:0.5em;">
-          <button onclick="saveToDrive()" class="btn">Googleドライブへ保存</button>
-          <button onclick="loadFromDrive()" class="btn">Googleドライブから復元</button>
-        </div>
         <h2>バックアップ機能について</h2>
         <h3>1. バックアップとは？</h3>
         <p>
@@ -233,9 +228,6 @@
     </form>
   </dialog>
   <script src="script.js"></script>
-  <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
-  <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js');
