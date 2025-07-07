@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ツムツム効率計算</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#396bdb">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+  <h1>ツムツム効率計算</h1>
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab(0)">記録</button>
+      <button class="tab-btn" onclick="showTab(1)">管理</button>
+      <button class="tab-btn" onclick="showTab(2)">ランキング</button>
+      <button class="tab-btn" onclick="showTab(3)">バックアップ機能</button>
+      <button class="tab-btn" onclick="showTab(4)">使い方</button>
+      <button class="tab-btn" onclick="showTab(5)">プライバシーポリシー</button>
+      <button class="tab-btn" onclick="showTab(6)">お問い合わせ</button>
+    </div>
+
+    <!-- 記録タブ -->
+    <div class="tab-content active">
+      <div class="card page-section">
+        <div id="recordHeader" class="row">
+          <label>+coinアイテム倍率:
+            <input type="number" step="0.01" id="itemRate" value="1.3" style="width: 70px;">
+          </label>
+          <label>ツムを選択:
+            <select id="tsumSelect" onchange="onSelectTsum()" style="width:120px;"></select>
+          </label>
+          <span id="playCountInfo">（記録件数：<span id="playCount">0</span>）</span>
+        </div>
+        <ul id="result" class="result-summary"></ul>
+        <div id="inputRow" class="row">
+          <label>入力方法:
+            <select id="inputMode" onchange="switchInputMode(this.value)" style="width:120px;">
+              <option value="stopwatch">ストップウォッチ</option>
+              <option value="manual">手入力</option>
+            </select>
+          </label>
+          <div id="stopwatchRow" class="stopwatch row">
+            <button id="toggleBtn" class="btn" onclick="togglePlay()">スタート</button>
+            <span id="timer" class="timer-display">00:00.0</span>
+          </div>
+          <div id="manualRow" class="row" style="display:none;">
+            <label>分:
+              <input type="number" id="manualMin" value="" min="0" style="width:60px;">
+            </label>
+            <label>秒:
+              <input type="number" id="manualSec" value="" min="0" max="59" style="width:60px;">
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <label>今回コイン数:
+            <input type="number" id="coinInput" value="0" min="0" style="width:80px;">
+          </label>
+          <span class="items">
+            <label><input type="checkbox" id="itemTime">タイム</label>
+            <label><input type="checkbox" id="item54">5→4</label>
+            <label><input type="checkbox" id="itemCoin">コイン</label>
+          </span>
+          <button onclick="addPlay()" id="addBtn" class="btn" disabled>記録追加</button>
+        </div>
+        <div class="play-list">
+          <table>
+            <thead>
+              <tr>
+                <th>コイン数</th>
+                <th>タイム</th><th>5→4</th><th>コイン</th>
+                <th>プレイ時間</th><th>削除</th>
+              </tr>
+            </thead>
+            <tbody id="plays"></tbody>
+          </table>
+          <button onclick="resetPlays()" class="btn danger" style="margin-top:0.5em;">全記録クリア</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管理タブ -->
+    <div class="tab-content">
+      <div class="card">
+        <h2 style="font-size:1.13em;">ツムの管理</h2>
+        <div class="row">
+          <label>ツム名:
+            <input type="text" id="tsumInput" placeholder="ツム名を入力">
+          </label>
+          <span class="itemset">
+            <label><input type="checkbox" id="setTime">タイム</label>
+            <label><input type="checkbox" id="set54">5→4</label>
+            <label><input type="checkbox" id="setCoin">コイン</label>
+          </span>
+          <button onclick="addTsum()" id="addTsumBtn" class="btn">追加</button>
+        </div>
+        <div id="tsumList"></div>
+      </div>
+    </div>
+
+    <!-- ランキングタブ -->
+    <div class="tab-content">
+      <div class="card">
+        <h2 style="font-size:1.13em;">ランキング</h2>
+        <div class="row" style="justify-content:flex-end;">
+          <label>表示:
+            <select id="rankingType" onchange="renderRanking()" style="width:150px;">
+              <option value="efficiency">効率ランキング</option>
+              <option value="average">平均コインランキング</option>
+            </select>
+          </label>
+        </div>        <div id="rankingArea" class="center"></div>
+      </div>
+    </div>
+ 
+    <!-- バックアップタブ -->
+    <div class="tab-content">
+      <div class="card">
+        <h2 style="font-size:1.13em;">データのバックアップ</h2>
+        <div class="row" style="justify-content:center;">
+          <button onclick="exportBackup()" class="btn">バックアップをダウンロード</button>
+        </div>
+        <div class="row" style="justify-content:center;">
+          <label class="btn" style="position:relative;overflow:hidden;">
+            復元
+            <input type="file" id="backupFile" accept="application/json" style="position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;" onchange="importBackup(event)">
+          </label>
+        </div>
+        <h2>バックアップ機能について</h2>
+        <h3>1. バックアップとは？</h3>
+        <p>
+          本アプリでは、入力したデータをブラウザ内の保存機能（IndexedDB）に保存しています。
+          このデータは同じ端末・同じブラウザからのみ利用できます。
+        </p>
+        <p>
+          しかし、万が一ブラウザのキャッシュ削除や端末の故障などでデータが消えてしまうことがあります。
+          そこで、バックアップ機能を使うことで、保存データをパソコンやスマートフォンにファイルとしてダウンロードできます。
+        </p>
+        <h3>2. バックアップの方法</h3>
+        <ol>
+          <li>アプリ内のメニューから「バックアップをダウンロード」ボタンをクリックします。</li>
+          <li>現在保存されているデータが自動的にファイル（通常は.jsonファイル）としてダウンロードされます。</li>
+          <li>このファイルはパソコンやスマートフォンの任意の場所に保存してください。</li>
+        </ol>
+        <h3>3. 復元（リストア）の方法</h3>
+        <ol>
+          <li>アプリのメニューから「復元」ボタンをクリックします。</li>
+          <li>先ほど保存したバックアップファイル（.jsonなど）を選択します。</li>
+          <li>読み込むことで、過去のデータが復元されます。</li>
+        </ol>
+        <h3>4. 注意点</h3>
+        <ul>
+          <li>バックアップファイルには作成データが含まれます。他人に渡さないようご注意ください。</li>
+          <li>バックアップは定期的に行うことをおすすめします。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 使い方タブ -->
+    <div class="tab-content">
+      <div class="card page-section">
+        <h2>ツムツム効率計算ツールの使い方</h2>
+        <ul>
+          <li><b>管理</b>タブで、使いたいツムと基本アイテム設定を登録します。</li>
+          <li><b>記録</b>タブでツムを選択し、<b>スタート</b>→プレイ終了時に<b>ストップ</b>を押します。</li>
+          <li>コイン数や使ったアイテムにチェックし、<b>記録追加</b>を押します。</li>
+          <li>ツムごとに効率（1分・1時間）や平均コインなどを自動集計します。</li>
+          <li><b>ランキング</b>タブで各ツムの効率を一覧で比較できます。</li>
+          <li>管理タブからツムの編集・削除もできます。</li>
+          <li>管理タブからツムの編集・削除もできます。</li>
+          <li>※バックアップ機能よりバックアップは定期的に行うことをおすすめします。</li>
+        </ul>
+        <p>
+          <b>スマートフォンにも対応</b>しているので現場でも片手でご利用いただけます。<br>
+          <b>ご要望・不具合は「お問い合わせ」からご連絡ください。</b>
+        </p>
+      </div>
+    </div>
+
+    <!-- プライバシーポリシータブ -->
+    <div class="tab-content">
+      <div class="card page-section">
+       <h2>プライバシーポリシー</h2>
+        <ul>
+          <li>
+            このサイトはブラウザの保存機能（ローカルストレージまたはIndexedDB）を利用し、ツム名や記録データを<strong>ご利用の端末内に保存</strong>します。<br>
+            <b>注意：</b>保存されたデータは<br>
+            ・同じ端末・同じブラウザでのみ有効です。<br>
+            ・ブラウザのキャッシュ削除や、端末の初期化・再インストールなどを行うとデータが消去される場合があります。<br>
+            ・他の端末やブラウザにはデータが自動で引き継がれません。
+          </li>
+          <li>このサイトで登録した情報（ツム名・記録）は、ユーザーの端末内（ローカルストレージまたはIndexedDB）にのみ保存され、運営者に送信されることはありません。</li>
+          <li>利用者の個人情報を第三者に提供・公開することはありません。</li>
+        </ul>
+        <h2>免責事項</h2>
+        <ul>
+          <li>本ツールの利用によるいかなる損害も運営者は責任を負いません。</li>
+          <li>機能改善・仕様変更・サービス停止等を予告なく行う場合があります。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- お問い合わせタブ -->
+    <div class="tab-content">
+      <div class="card page-section">
+        <h2>お問い合わせ</h2>
+        <p>
+          ご意見・ご要望・不具合報告は以下のX（旧Twitter）のDMまでご連絡ください。<br>
+          <a class="contact-link" href="https://x.com/messages/compose?recipient_id=1083938535449583616" target="_blank" rel="noopener noreferrer">X（旧Twitter）でDMする</a>
+        </p>
+      </div>
+    </div>
+  </div>
+  <dialog id="testNotice">
+    <form method="dialog" class="notice-form">
+      <p>現在テスト中です。登録したデータが突然消える場合があります。</p>
+      <label><input type="checkbox" id="testNoticeCheck"> 確認しました</label>
+      <div class="center" style="margin-top:0.5em;">
+        <button id="testNoticeOk" class="btn" disabled>OK</button>
+      </div>
+    </form>
+  </dialog>
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html
