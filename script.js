@@ -75,8 +75,6 @@ function escapeHtml(str){
   return str.replace(/[&"<>]/g, c => ({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));
 }
 
-function playNetCoins(p, rate){
-
 async function updateStorageInfo(){
   const el = $('storageInfo');
   if(!el) return;
