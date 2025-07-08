@@ -49,16 +49,13 @@ async function loadData(){
     });
     if(result){
       data = result;
-      updateStorageInfo();
       return;
-      
     }
   }catch(e){ }  const saved = localStorage.getItem(STORAGE_KEY);
   if(saved){
     try{ data = JSON.parse(saved); }catch(e){ data = { tsums: [] }; }
   }
   await saveData();
-  updateStorageInfo();
 }
 
 function saveData(){
@@ -67,7 +64,6 @@ function saveData(){
   getDb().then(db => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     tx.objectStore(STORE_NAME).put(data, STORAGE_KEY);
-  updateStorageInfo();
   });
 }
 
@@ -75,49 +71,7 @@ function escapeHtml(str){
   return str.replace(/[&"<>]/g, c => ({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));
 }
 
-async function updateStorageInfo(){
-  const el = $('storageInfo');
-  if(!el) return;
-  let quota = 0, usage = 0;
-  try{
-    const est = await navigator.storage.estimate();
-    quota = est.quota || 0;
-    usage = est.usage || 0;
-  }catch(e){}
-  let ls = 0;
-  
-  let lsUsed = 0;
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
-      const v = localStorage.getItem(k);
-      lsUsed += (k.length + (v? v.length:0)) * 2;
-    }
-  }catch(e){}
-
-  let idbUsed = 0;
-  try{
-    idbUsed = new Blob([JSON.stringify(data)]).size;
-  }catch(e){}
-
-  const totalFree = quota ? quota - usage : 0;
-  const lsFree = quota ? quota - (usage - lsUsed) : 0;
-  const idbFree = quota ? quota - (usage - idbUsed) : 0;
-  const toMB = b => (b/1024/1024).toFixed(2);
-
-  const lines = [
-    `localStorage: ${toMB(lsFree)}MB free / ${toMB(lsUsed)}MB used / ${toMB(lsFree + lsUsed)}MB total`,
-    `IndexedDB: ${toMB(idbFree)}MB free / ${toMB(idbUsed)}MB used / ${toMB(idbFree + idbUsed)}MB total`
-  ];
-  if(quota){
-    lines.push(`Overall: ${toMB(totalFree)}MB free / ${toMB(usage)}MB used / ${toMB(quota)}MB total`);
-  }
-
-  el.innerHTML = lines.join('<br>');
-}
-
 function playNetCoins(p, rate){
-    
   let cost = 0;
   if(p.items && p.items.time) cost += ITEM_COST_TIME;
   if(p.items && p.items.item54) cost += ITEM_COST_54;
@@ -423,7 +377,6 @@ function addPlay(){
     timeSec
   });
   $('coinInput').value=0;
-  $('itemTime').checked = $('item54').checked = $('itemCoin').checked = false;
   saveData();
   renderPlays();
   renderRanking();
@@ -489,7 +442,6 @@ function importBackup(event){
         data = obj;
         saveData();
         renderAll();
-        updateStorageInfo();
       }
     }catch(err){
       alert('読み込みに失敗しました');
@@ -497,7 +449,6 @@ function importBackup(event){
   };
   reader.readAsText(file);
 }
-
 
 function showTestNotice(){
   if(localStorage.getItem(TEST_NOTICE_KEY)) return;
@@ -522,7 +473,6 @@ async function init(){
   switchInputMode('stopwatch');
   if(data.tsums.length>0) onSelectTsum();
   showTestNotice();
-  updateStorageInfo();
 }
 
 window.addEventListener('DOMContentLoaded', init);
