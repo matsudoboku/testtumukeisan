@@ -214,8 +214,11 @@
     .contact-link {display:inline-block; background:#e3eaf5; color:#1e3b92; border-radius:7px; padding:0.4em 1em; margin-top:0.8em;text-decoration:none;}
   @media (max-width:600px){
       .container {padding:0.2em;}
-      .row, .result-summary{flex-direction:column; gap:0.4em;}
-      .row label{width:100%;}
+        .row, .result-summary{flex-direction:column; gap:0.3em;}
+        .row label{width:100%;}
+        #recordHeader,
+        #inputRow,
+        #coinRow {margin-bottom:0.6em; gap:0.3em;}
       .row input[type="number"],
       .row input[type="text"],
       .row select{
