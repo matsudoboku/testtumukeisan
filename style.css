@@ -221,11 +221,12 @@
       .play-list th, .play-list td, .ranking th, .ranking td {font-size:0.91em;}
       .card {padding:1.1em 0.5em;}
       .stopwatch {flex-direction:row;}
-      #manualRow {flex-direction:row;}
+      #inputFieldsRow {flex-direction:row;}
+      #manualFields {flex-direction:row;}
       #coinRow {flex-direction:row;}
-      #manualRow label,
+      #manualFields label,
       #coinRow label {width:auto;}
-      #manualRow input[type="number"] {width:60px !important;}
+      #manualFields input[type="number"] {width:60px !important;}
       #coinInput {width:80px !important;}      #playCountInfo { margin-left: 0; }
       .play-list table, .ranking table, .tsum-admin-table {font-size:0.91em;}
       .tabs button:nth-child(3){min-width:130px;}
