@@ -387,11 +387,11 @@ function addPlay(){
 
 function switchInputMode(mode){
   if(mode==='manual'){
-    $('manualRow').style.display='flex';
+    $('manualFields').style.display='flex';
     $('stopwatchRow').style.display='none';
     $('addBtn').disabled=false;
   }else{
-    $('manualRow').style.display='none';
+    $('manualFields').style.display='none';
     $('stopwatchRow').style.display='flex';
     $('addBtn').disabled=true;
   }
