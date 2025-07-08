@@ -59,8 +59,20 @@
       margin-bottom: 1.5em;
       padding: 1.5em 1.2em 1em 1.2em;
     }
-    .row { display: flex; align-items: center; gap: 1em; margin-bottom:1em;}
-    .row label { font-weight: 500;}
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+    .row label {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+      white-space: nowrap;
+    }
     #recordHeader { flex-wrap: wrap; }
     #playCountInfo { font-size: 0.99em; color: #355; margin-left: auto; }
     select, input[type="number"], input[type="text"] {
@@ -72,6 +84,7 @@
       margin-right: 0.3em;
       background: #f7faff;
       transition: border 0.2s;
+      box-sizing: border-box;
     }
     input[type="number"] {
       font-variant-numeric: tabular-nums;
@@ -189,6 +202,14 @@
   @media (max-width:600px){
       .container {padding:0.2em;}
       .row, .result-summary{flex-direction:column; gap:0.4em;}
+      .row label{width:100%;}
+      .row input[type="number"],
+      .row input[type="text"],
+      .row select{
+        width:100% !important;
+        margin-left:0;
+        margin-right:0;
+      }
       .play-list th, .play-list td, .ranking th, .ranking td {font-size:0.91em;}
       .card {padding:1.1em 0.5em;}
       .stopwatch {flex-direction:row;}
