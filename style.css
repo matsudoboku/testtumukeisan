@@ -73,6 +73,10 @@
   justify-content: center;
   width: 100%;
   overflow: hidden;
+  max-width: 100%;
+}
+#inputFieldsRow, #manualFields, #coinRow {
+  justify-content: center;
 }
 .row label {
   font-weight: 500;
@@ -143,8 +147,10 @@
       align-items:center;
     ｝
     .wide-btn {
-      width: 100%;
+      width: 90%;
       min-width: 0;
+      margin: 0 auto;
+      display: block;
     }
     .add-btn-row { margin: 0.4em 0 0.6em; }
     button:active, .btn:active { transform: scale(0.98);}
@@ -222,7 +228,7 @@
       .row input[type="number"],
       .row input[type="text"],
       .row select{
-        width:100% !important;
+        width:auto !important;
         margin-left:0;
         margin-right:0;
       }
