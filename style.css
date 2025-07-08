@@ -73,6 +73,9 @@
       background: #f7faff;
       transition: border 0.2s;
     }
+    input[type="number"] {
+      font-variant-numeric: tabular-nums;
+    }
     select:focus, input:focus {
       outline: none;
       border-color: #3066c7;
