@@ -61,18 +61,24 @@
       margin-bottom: 1.5em;
       padding: 1.5em 1.2em 1em 1.2em;
     }
-    .row {
-      display: flex;
-      align-items: center;
-      gap: 1em;
-      margin-bottom: 1em;
-      flex-wrap: wrap;
-    }
-    .row label {
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.3em;
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-bottom: 1em;
+  flex-wrap: wrap;
+}
+.backup-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+}
+.row label {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
       white-space: nowrap;
     }
     #recordHeader { flex-wrap: wrap; }
