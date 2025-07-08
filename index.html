@@ -47,7 +47,9 @@
             <button id="toggleBtn" class="btn" onclick="togglePlay()">スタート</button>
             <span id="timer" class="timer-display">00:00.0</span>
           </div>
-          <div id="manualRow" class="row" style="display:none;">
+        </div>
+        <div id="inputFieldsRow" class="row">
+          <div id="manualFields" class="row" style="display:none;">
             <label>分:
               <input type="number" id="manualMin" value="" min="0" style="width:60px;">
             </label>
@@ -55,11 +57,11 @@
               <input type="number" id="manualSec" value="" min="0" max="59" style="width:60px;">
             </label>
           </div>
-        </div>
-        <div id="coinRow" class="row">
-          <label>今回コイン数:
+          <label>コイン数:
              <input type="number" id="coinInput" value="0" min="0" style="width:80px;">
           </label>
+        </div>
+        <div id="coinRow" class="row">
           <span class="items">
             <label><input type="checkbox" id="itemTime">タイム</label>
             <label><input type="checkbox" id="item54">5→4</label>
